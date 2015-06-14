@@ -17,6 +17,7 @@
 module Language.PureScript.AST.Declarations where
 
 import qualified Data.Data as D
+import qualified Data.Map as M
 
 import Language.PureScript.AST.Binders
 import Language.PureScript.AST.Operators
@@ -396,6 +397,7 @@ data Expr
   -- An application of a typeclass dictionary constructor. The value should be
   -- an ObjectLiteral.
   --
+  | TypeClassDictionary Bool Constraint (M.Map (Maybe ModuleName) [TypeClassDictionaryInScope])
   | TypeClassDictionaryConstructorApp (Qualified ProperName) Expr
   -- |
   -- A placeholder for a type class dictionary to be inserted later. At the end of type checking, these
@@ -404,8 +406,7 @@ data Expr
   -- at superclass implementations when searching for a dictionary, the type class name and
   -- instance type, and the type class dictionaries in scope.
   --
-  | TypeClassDictionary Bool Constraint [TypeClassDictionaryInScope]
-  -- |
+    
   -- A typeclass dictionary accessor, the implementation is left unspecified until CoreFn desugaring.
   --
   | TypeClassDictionaryAccessor (Qualified ProperName) Ident

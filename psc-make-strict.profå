@@ -1,0 +1,119 @@
+        Thu Jun  4 01:32 2015 Time and Allocation Profiling Report  (Final)
+
+
+
+        total time  =      332.46 secs   (332457 ticks @ 1000 us, 1 processor)
+        total alloc = 204,952,848,624 bytes  (excludes profiling overheads)
+
+COST CENTRE MODULE  %time %alloc
+
+>>=         Main     98.3   94.6
+compile     Main      0.9    3.7
+fmap        Main      0.4    1.6
+
+
+                                                                                          individual     inherited
+COST CENTRE          MODULE                                             no.     entries  %time %alloc   %time %alloc
+
+MAIN                 MAIN                                               205           0    0.0    0.0   100.0  100.0
+ main                Main                                               411           0    0.0    0.0   100.0  100.0
+  compile            Main                                               432           1    0.9    3.7   100.0  100.0
+   compile.prefix    Main                                               456           1    0.0    0.0     0.0    0.0
+   reader            Main                                               441           0    0.0    0.0     0.0    0.0
+   runMake           Main                                               437           1    0.0    0.0    99.0   96.2
+    >>=              Main                                               439           0   98.3   94.6    99.0   96.2
+     writeTextFile   Main                                               453         998    0.2    0.0     0.2    0.0
+      mkdirp         Main                                               455           0    0.0    0.0     0.0    0.0
+     reader          Main                                               451           0    0.0    0.0     0.0    0.0
+     progress        Main                                               450           0    0.0    0.0     0.0    0.0
+     fmap            Main                                               447           0    0.4    1.6     0.4    1.6
+      getTimestamp   Main                                               448           0    0.0    0.0     0.0    0.0
+     getTimestamp    Main                                               443        1490    0.0    0.0     0.0    0.0
+    unMake           Main                                               438           1    0.0    0.0     0.0    0.0
+   readInput         Main                                               433           1    0.0    0.0     0.1    0.0
+    readInput.\      Main                                               434         491    0.1    0.0     0.1    0.0
+  pscMakeOptions     Main                                               423           0    0.0    0.0     0.0    0.0
+ CAF                 Main                                               409           0    0.0    0.0     0.0    0.0
+  compile            Main                                               457           0    0.0    0.0     0.0    0.0
+   compile.prefix    Main                                               458           0    0.0    0.0     0.0    0.0
+  mkdirp             Main                                               454           1    0.0    0.0     0.0    0.0
+  ask                Main                                               452           1    0.0    0.0     0.0    0.0
+  progress           Main                                               449           1    0.0    0.0     0.0    0.0
+  fmap               Main                                               446           1    0.0    0.0     0.0    0.0
+  pure               Main                                               445           1    0.0    0.0     0.0    0.0
+  makeIO             Main                                               444           1    0.0    0.0     0.0    0.0
+  return             Main                                               442           1    0.0    0.0     0.0    0.0
+  reader             Main                                               440           1    0.0    0.0     0.0    0.0
+  >>=                Main                                               436           1    0.0    0.0     0.0    0.0
+  noPrefix           Main                                               431           1    0.0    0.0     0.0    0.0
+  comments           Main                                               430           1    0.0    0.0     0.0    0.0
+  verboseErrors      Main                                               429           1    0.0    0.0     0.0    0.0
+  noOpts             Main                                               428           1    0.0    0.0     0.0    0.0
+  noMagicDo          Main                                               427           1    0.0    0.0     0.0    0.0
+  noTco              Main                                               426           1    0.0    0.0     0.0    0.0
+  noPrelude          Main                                               425           1    0.0    0.0     0.0    0.0
+  options            Main                                               424           1    0.0    0.0     0.0    0.0
+  outputDirectory    Main                                               422           1    0.0    0.0     0.0    0.0
+  inputFile          Main                                               421           1    0.0    0.0     0.0    0.0
+  pscMakeOptions     Main                                               420           1    0.0    0.0     0.0    0.0
+  main               Main                                               410           1    0.0    0.0     0.0    0.0
+   compile           Main                                               435           0    0.0    0.0     0.0    0.0
+   main.version      Main                                               419           1    0.0    0.0     0.0    0.0
+   main.headerInfo   Main                                               417           1    0.0    0.0     0.0    0.0
+   main.footerInfo   Main                                               415           1    0.0    0.0     0.0    0.0
+   main.infoModList  Main                                               413           1    0.0    0.0     0.0    0.0
+    main.headerInfo  Main                                               418           0    0.0    0.0     0.0    0.0
+    main.footerInfo  Main                                               416           0    0.0    0.0     0.0    0.0
+   main.opts         Main                                               412           1    0.0    0.0     0.0    0.0
+    main.infoModList Main                                               414           0    0.0    0.0     0.0    0.0
+ CAF                 Paths_purescript                                   408           0    0.0    0.0     0.0    0.0
+  version            Paths_purescript                                   459           1    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript                                407           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.AST.Operators                  404           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.Externs                401           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.JS                     400           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.JS.AST                 399           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.JS.Common              398           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.JS.Optimizer.Inliner   394           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.JS.Optimizer.MagicDo   393           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CodeGen.JS.Optimizer.TCO       392           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Constants                      390           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.CoreFn.Desugar                 387           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Environment                    379           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.ModuleDependencies             376           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Parser.Lexer                   373           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Parser.Declarations            371           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Parser.Kinds                   370           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Parser.Types                   368           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Pretty.JS                      366           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Pretty.Kinds                   365           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Pretty.Types                   364           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Renamer                        362           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Sugar.BindingGroups            360           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Sugar.DoNotation               358           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Sugar.Names                    357           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Sugar.Operators                355           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Sugar.TypeClasses              354           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker                    352           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Entailment         351           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Kinds              350           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Monad              349           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Rows               348           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Skolems            347           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Synonyms           345           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Types              344           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.TypeChecker.Unify              343           0    0.0    0.0     0.0    0.0
+ CAF                 Language.PureScript.Types                          341           0    0.0    0.0     0.0    0.0
+ CAF                 Text.Parsec.Token                                  323           0    0.0    0.0     0.0    0.0
+ CAF                 Options.Applicative.BashCompletion                 311           0    0.0    0.0     0.0    0.0
+ CAF                 Options.Applicative.Common                         307           0    0.0    0.0     0.0    0.0
+ CAF                 Options.Applicative.Extra                          306           0    0.0    0.0     0.0    0.0
+ CAF                 Data.Graph                                         267           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.Conc.Signal                                    255           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.Float                                          250           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.IO.Encoding                                    246           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.IO.Encoding.Iconv                              244           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.IO.FD                                          239           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.IO.Handle.FD                                   237           0    0.0    0.0     0.0    0.0
+ CAF                 GHC.Show                                           230           0    0.0    0.0     0.0    0.0
+ CAF                 System.Exit                                        226           0    0.0    0.0     0.0    0.0
