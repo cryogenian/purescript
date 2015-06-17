@@ -13,19 +13,22 @@
 --
 -----------------------------------------------------------------------------
 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Language.PureScript.TypeChecker.Entailment (
     entails
 ) where
 
 import Data.Function (on)
 import Data.List
-import Data.Maybe (maybeToList, fromMaybe)
+import Data.Maybe (fromMaybe, maybeToList)
 import Data.Foldable (foldMap)
 import qualified Data.Map as M
 
 import Control.Applicative
 import Control.Arrow (Arrow(..))
-import Control.Monad.Except
+import Control.Monad.State
+import Control.Monad.Error.Class (MonadError(..))
 
 import Language.PureScript.AST
 import Language.PureScript.Errors
@@ -38,13 +41,18 @@ import Language.PureScript.TypeClassDictionaries
 import Language.PureScript.Types
 import qualified Language.PureScript.Constants as C
 
+newtype Work = Work Integer deriving (Show, Eq, Ord, Num)
+
 -- |
 -- Check that the current set of type class dictionaries entail the specified type class goal, and, if so,
 -- return a type class dictionary reference.
 --
 entails :: Environment -> ModuleName -> M.Map (Maybe ModuleName) [TypeClassDictionaryInScope] -> Constraint -> Bool -> Check Expr
-entails env moduleName context = solve (sortedNubBy canonicalizeDictionary dictsInScope)
+entails env moduleName context = solve
   where
+    byClassName :: M.Map (Qualified ProperName) [TypeClassDictionaryInScope]
+    byClassName = M.fromListWith (++) $ (\tcd -> (tcdClassName tcd, [tcd])) <$> sortedNubBy canonicalizeDictionary dictsInScope
+
     sortedNubBy :: (Ord k) => (v -> k) -> [v] -> [v]
     sortedNubBy f vs = M.elems (M.fromList (map (f &&& id) vs))
 
@@ -54,49 +62,57 @@ entails env moduleName context = solve (sortedNubBy canonicalizeDictionary dicts
     findDicts :: Maybe ModuleName -> [TypeClassDictionaryInScope]
     findDicts = fromMaybe [] . flip M.lookup context
 
-
-    
-    solve context' (className, tys) trySuperclasses =
-      checkOverlaps $ go trySuperclasses className tys
+    solve :: Constraint -> Bool -> Check Expr
+    solve (className, tys) trySuperclasses = do
+      let dicts = flip evalStateT (Work 0) $ go trySuperclasses className tys
+      checkOverlaps dicts
       where
-      go trySuperclasses' className' tys' =
-        -- Look for regular type instances
-        [ mkDictionary (canonicalizeDictionary tcd) args
-        | tcd <- context'
-        -- Make sure the type class name matches the one we are trying to satisfy
-        , className' == tcdClassName tcd
-        -- Make sure the type unifies with the type in the type instance definition
-        , subst <- maybeToList . (>>= verifySubstitution) . fmap concat $ zipWithM (typeHeadsAreEqual moduleName env) tys' (tcdInstanceTypes tcd)
-        -- Solve any necessary subgoals
-        , args <- solveSubgoals subst (tcdDependencies tcd) ] ++
+      go :: Bool -> Qualified ProperName -> [Type] -> StateT Work [] DictionaryValue
+      go trySuperclasses' className' tys' = do
+        workDone <- get
+        guard $ workDone < 1000
+        modify (1 +)
+        directInstances <|> superclassInstances
+        where
+        directInstances :: StateT Work [] DictionaryValue
+        directInstances = do
+          tcd <- lift . fromMaybe [] $ M.lookup className' byClassName
+          -- Make sure the type unifies with the type in the type instance definition
+          subst <- lift . maybeToList . (>>= verifySubstitution) . fmap concat $ zipWithM (typeHeadsAreEqual moduleName env) tys' (tcdInstanceTypes tcd)
+          -- Solve any necessary subgoals
+          args <- solveSubgoals subst (tcdDependencies tcd)
+          return $ mkDictionary (canonicalizeDictionary tcd) args
 
-        -- Look for implementations via superclasses
-        [ SubclassDictionaryValue suDict superclass index
-        | trySuperclasses'
-        , (subclassName, (args, _, implies)) <- M.toList (typeClasses env)
-        -- Try each superclass
-        , (index, (superclass, suTyArgs)) <- zip [0..] implies
-        -- Make sure the type class name matches the superclass name
-        , className' == superclass
-        -- Make sure the types unify with the types in the superclass implication
-        , subst <- maybeToList . (>>= verifySubstitution) . fmap concat $ zipWithM (typeHeadsAreEqual moduleName env) tys' suTyArgs
-        -- Finally, satisfy the subclass constraint
-        , args' <- maybeToList $ mapM ((`lookup` subst) . fst) args
-        , suDict <- go True subclassName args' ]
+        superclassInstances :: StateT Work [] DictionaryValue
+        superclassInstances = do
+          guard trySuperclasses'
+          (subclassName, (args, _, implies)) <- lift $ M.toList (typeClasses env)
+          -- Try each superclass
+          (index, (superclass, suTyArgs)) <- lift $ zip [0..] implies
+          -- Make sure the type class name matches the superclass name
+          guard $ className' == superclass
+          -- Make sure the types unify with the types in the superclass implication
+          subst <- lift . maybeToList . (>>= verifySubstitution) . fmap concat $ zipWithM (typeHeadsAreEqual moduleName env) tys' suTyArgs
+          -- Finally, satisfy the subclass constraint
+          args' <- lift . maybeToList $ mapM ((`lookup` subst) . fst) args
+          suDict <- go True subclassName args'
+          return $ SubclassDictionaryValue suDict superclass index
 
       -- Create dictionaries for subgoals which still need to be solved by calling go recursively
       -- E.g. the goal (Show a, Show b) => Show (Either a b) can be satisfied if the current type
       -- unifies with Either a b, and we can satisfy the subgoals Show a and Show b recursively.
-      solveSubgoals :: [(String, Type)] -> Maybe [Constraint] -> [Maybe [DictionaryValue]]
+      solveSubgoals :: [(String, Type)] -> Maybe [Constraint] -> StateT Work [] (Maybe [DictionaryValue])
       solveSubgoals _ Nothing = return Nothing
       solveSubgoals subst (Just subgoals) = do
         dict <- mapM (uncurry (go True) . second (map (replaceAllTypeVars subst))) subgoals
         return $ Just dict
+        
       -- Make a dictionary from subgoal dictionaries by applying the correct function
       mkDictionary :: Qualified Ident -> Maybe [DictionaryValue] -> DictionaryValue
       mkDictionary fnName Nothing = LocalDictionaryValue fnName
       mkDictionary fnName (Just []) = GlobalDictionaryValue fnName
       mkDictionary fnName (Just dicts) = DependentDictionaryValue fnName dicts
+      
       -- Turn a DictionaryValue into a Expr
       dictionaryValueToValue :: DictionaryValue -> Expr
       dictionaryValueToValue (LocalDictionaryValue fnName) = Var fnName
@@ -118,7 +134,7 @@ entails env moduleName context = solve (sortedNubBy canonicalizeDictionary dicts
       checkOverlaps :: [DictionaryValue] -> Check Expr
       checkOverlaps dicts =
         case [ (d1, d2) | d1 <- dicts, d2 <- dicts, d1 `overlapping` d2 ] of
-          ds@(_ : _) -> throwError . errorMessage $ OverlappingInstances className tys (map fst ds)
+          ds@(_ : _) -> throwError . errorMessage $ OverlappingInstances className tys $ nub (map fst ds)
           _ -> case chooseSimplestDictionaries dicts of
                  [] -> throwError . errorMessage $ NoInstanceFound className tys
                  d : _ -> return $ dictionaryValueToValue d
